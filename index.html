@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveStream - with Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 5px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .tab {
+            padding: 12px 30px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h2 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .video-container {
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+            aspect-ratio: 16/9;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 1.2rem;
+            color: #aaa;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .primary-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .primary-btn:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .secondary-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .secondary-btn:hover:not(:disabled) {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+        
+        .viewer-btn {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .viewer-btn:hover:not(:disabled) {
+            background: #0b7dda;
+            transform: translateY(-2px);
+        }
+        
+        .link-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .link-display {
+            display: flex;
+            margin-top: 10px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .copy-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            background: #FF9800;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .online {
+            background: rgba(76, 175, 80, 0.3);
+            color: #8BC34A;
+        }
+        
+        .offline {
+            background: rgba(244, 67, 54, 0.3);
+            color: #FF5252;
+        }
+        
+        .connecting {
+            background: rgba(255, 152, 0, 0.3);
+            color: #FFB74D;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Chat Section Styles */
+        .chat-section {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-messages {
+            height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message.sent {
+            align-self: flex-end;
+            background: #2196F3;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.received {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-system {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.05);
+            font-style: italic;
+            font-size: 0.9rem;
+            border-radius: 10px;
+        }
+        
+        .message-sender {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 3px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .chat-input button {
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: #4CAF50;
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .card {
+                width: 100%;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎥 LiveStream + Chat</h1>
+            <p class="subtitle">Complete WebRTC streaming platform with real-time chat</p>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="broadcaster">🎥 Broadcaster</div>
+                <div class="tab" data-tab="viewer">👁️ Viewer</div>
+            </div>
+        </header>
+        
+        <!-- Broadcaster Tab -->
+        <div class="tab-content active" id="broadcaster">
+            <div class="main-content">
+                <div class="card">
+                    <h2>🎥 Go Live</h2>
+                    <div class="video-container">
+                        <video id="broadcasterVideo" autoplay muted></video>
+                        <div id="broadcasterPlaceholder" class="placeholder">
+                            Click "Start Streaming" to begin broadcasting
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="startStream" class="primary-btn">🎬 Start Streaming</button>
+                        <button id="stopStream" class="secondary-btn hidden">⏹️ Stop Streaming</button>
+                    </div>
+                    
+                    <div id="streamLinkSection" class="link-section hidden">
+                        <h3>🔗 Share this link:</h3>
+                        <div class="link-display">
+                            <input type="text" id="streamLink" readonly>
+                            <button id="copyLink" class="copy-btn">📋 Copy</button>
+                        </div>
+                    </div>
+                    
+                    <div id="broadcasterStatus" class="status offline">● Offline</div>
+                    <div class="log" id="broadcasterLog"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="chat-section">
+                        <div class="chat-header">
+                            <h3>💬 Live Chat</h3>
+                        </div>
+                        <div class="chat-messages" id="broadcasterChat"></div>
+                        <div class="chat-input">
+                            <input type="text" id="broadcasterMessage" placeholder="Type your message..." disabled>
+                            <button id="sendBroadcasterMessage" disabled>Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Viewer Tab -->
+        <div class="tab-content" id="viewer">
+            <div class="main-content">
+                <div class="card">
+                    <h2>👁️ Watch Stream</h2>
+                    <div class="video-container">
+                        <video id="viewerVideo" autoplay></video>
+                        <div id="viewerPlaceholder" class="placeholder">
+                            Paste stream link and click "Watch Stream"
+                        </div>
+                    </div>
+                    
+                    <div class="link-section">
+                        <h3>🔗 Stream Link:</h3>
+                        <input type="text" id="viewerLinkInput" placeholder="Paste stream link here">
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="watchStream" class="viewer-btn">👀 Watch Stream</button>
+                        <button id="stopWatching" class="secondary-btn hidden">⏹️ Stop Watching</button>
+                    </div>
+                    
+                    <div id="viewerStatus" class="status offline">● Not connected</div>
+                    <div class="log" id="viewerLog"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="chat-section">
+                        <div class="chat-header">
+                            <h3>💬 Live Chat</h3>
+                        </div>
+                        <div class="chat-messages" id="viewerChat"></div>
+                        <div class="chat-input">
+                            <input type="text" id="viewerMessage" placeholder="Type your message..." disabled>
+                            <button id="sendViewerMessage" disabled>Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const broadcasterVideo = document.getElementById('broadcasterVideo');
+        const broadcasterPlaceholder = document.getElementById('broadcasterPlaceholder');
+        const startStreamBtn = document.getElementById('startStream');
+        const stopStreamBtn = document.getElementById('stopStream');
+        const streamLinkSection = document.getElementById('streamLinkSection');
+        const streamLink = document.getElementById('streamLink');
+        const copyLinkBtn = document.getElementById('copyLink');
+        const broadcasterStatus = document.getElementById('broadcasterStatus');
+        const broadcasterLog = document.getElementById('broadcasterLog');
+        const broadcasterChat = document.getElementById('broadcasterChat');
+        const broadcasterMessage = document.getElementById('broadcasterMessage');
+        const sendBroadcasterMessage = document.getElementById('sendBroadcasterMessage');
+        
+        const viewerVideo = document.getElementById('viewerVideo');
+        const viewerPlaceholder = document.getElementById('viewerPlaceholder');
+        const viewerLinkInput = document.getElementById('viewerLinkInput');
+        const watchStreamBtn = document.getElementById('watchStream');
+        const stopWatchingBtn = document.getElementById('stopWatching');
+        const viewerStatus = document.getElementById('viewerStatus');
+        const viewerLog = document.getElementById('viewerLog');
+        const viewerChat = document.getElementById('viewerChat');
+        const viewerMessage = document.getElementById('viewerMessage');
+        const sendViewerMessage = document.getElementById('sendViewerMessage');
+
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // WebRTC variables
+        let localStream = null;
+        let peerConnection = null;
+        let signalingSocket = null;
+        let dataChannel = null;
+        let streamId = null;
+        let isBroadcaster = false;
+        let userName = 'User_' + Math.floor(Math.random() * 1000);
+
+        // Use local signaling server
+        const SIGNALING_SERVER = 'ws://localhost:3000';
+
+        // STUN servers
+        const pcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+        };
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Logging function
+        function addLog(element, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `[${timestamp}] ${message}<br>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // Chat functions
+        function addChatMessage(chatElement, message, sender, type = 'received') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            if (type === 'system') {
+                messageDiv.className = 'message message-system';
+                messageDiv.textContent = message;
+            } else {
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message-sender';
+                senderDiv.textContent = sender;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.textContent = message;
+                
+                messageDiv.appendChild(senderDiv);
+                messageDiv.appendChild(contentDiv);
+            }
+            
+            chatElement.appendChild(messageDiv);
+            chatElement.scrollTop = chatElement.scrollHeight;
+        }
+
+        function sendChatMessage(message) {
+            if (dataChannel && dataChannel.readyState === 'open') {
+                dataChannel.send(JSON.stringify({
+                    type: 'chat',
+                    message: message,
+                    sender: userName,
+                    timestamp: Date.now()
+                }));
+                
+                // Add to own chat
+                const chatElement = isBroadcaster ? broadcasterChat : viewerChat;
+                addChatMessage(chatElement, message, 'You', 'sent');
+                
+                return true;
+            }
+            return false;
+        }
+
+        // Generate room ID from URL or create new
+        function getOrCreateRoomId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let roomId = urlParams.get('room');
+            
+            if (!roomId) {
+                roomId = Math.random().toString(36).substring(2, 8);
+            }
+            
+            return roomId;
+        }
+
+        // Connect to signaling server
+        function connectSignalingServer(roomId, isBroadcaster) {
+            return new Promise((resolve, reject) => {
+                signalingSocket = new WebSocket(SIGNALING_SERVER);
+                
+                signalingSocket.onopen = () => {
+                    addLog(isBroadcaster ? broadcasterLog : viewerLog, '✅ Connected to signaling server');
+                    
+                    signalingSocket.send(JSON.stringify({
+                        type: 'join',
+                        room: roomId,
+                        isBroadcaster: isBroadcaster,
+                        userName: userName
+                    }));
+                    
+                    resolve(signalingSocket);
+                };
+                
+                signalingSocket.onerror = (error) => {
+                    addLog(isBroadcaster ? broadcasterLog : viewerLog, '❌ Signaling server error - Run: node server.js');
+                    reject(error);
+                };
+                
+                signalingSocket.onclose = () => {
+                    addLog(isBroadcaster ? broadcasterLog : viewerLog, '🔌 Connection closed');
+                };
+                
+                signalingSocket.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        handleSignalingMessage(message, isBroadcaster);
+                    } catch (error) {
+                        console.error('Error parsing message:', error);
+                    }
+                };
+            });
+        }
+
+        // Handle signaling messages
+        function handleSignalingMessage(message, isBroadcaster) {
+            addLog(isBroadcaster ? broadcasterLog : viewerLog, `📨 ${message.type}`);
+            
+            switch (message.type) {
+                case 'joined':
+                    if (isBroadcaster) {
+                        broadcasterStatus.textContent = '✅ Ready to stream';
+                        broadcasterStatus.className = 'status online';
+                        createPeerConnection();
+                    } else {
+                        viewerStatus.textContent = '✅ Connected to room';
+                        viewerStatus.className = 'status connecting';
+                        createPeerConnection();
+                    }
+                    break;
+                    
+                case 'user-joined':
+                    if (isBroadcaster) {
+                        addChatMessage(broadcasterChat, `${message.userName} joined the chat`, 'System', 'system');
+                        setTimeout(() => createOffer(), 500);
+                    }
+                    break;
+                    
+                case 'user-left':
+                    addChatMessage(isBroadcaster ? broadcasterChat : viewerChat, 
+                                 `${message.userName} left the chat`, 'System', 'system');
+                    break;
+                    
+                case 'offer':
+                    if (!isBroadcaster) {
+                        handleOffer(message.offer);
+                    }
+                    break;
+                    
+                case 'answer':
+                    if (isBroadcaster) {
+                        handleAnswer(message.answer);
+                    }
+                    break;
+                    
+                case 'ice-candidate':
+                    handleIceCandidate(message.candidate);
+                    break;
+                    
+                case 'chat':
+                    // Handle chat messages from signaling server (for multiple users)
+                    const chatElement = isBroadcaster ? broadcasterChat : viewerChat;
+                    addChatMessage(chatElement, message.message, message.sender, 'received');
+                    break;
+            }
+        }
+
+        // Create peer connection
+        function createPeerConnection() {
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            
+            peerConnection = new RTCPeerConnection(pcConfig);
+            
+            // Add local stream tracks if broadcaster
+            if (isBroadcaster && localStream) {
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+                addLog(broadcasterLog, '📹 Added local stream to peer connection');
+            }
+            
+            // Handle incoming stream (viewer)
+            peerConnection.ontrack = (event) => {
+                if (event.streams && event.streams[0]) {
+                    viewerVideo.srcObject = event.streams[0];
+                    viewerPlaceholder.classList.add('hidden');
+                    viewerStatus.textContent = '🎥 Watching live stream';
+                    viewerStatus.className = 'status online';
+                    addLog(viewerLog, '✅ Connected to stream successfully!');
+                    
+                    // Enable chat for viewer
+                    viewerMessage.disabled = false;
+                    sendViewerMessage.disabled = false;
+                }
+            };
+            
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate && signalingSocket) {
+                    signalingSocket.send(JSON.stringify({
+                        type: 'ice-candidate',
+                        candidate: event.candidate,
+                        room: streamId
+                    }));
+                }
+            };
+            
+            // Handle connection state
+            peerConnection.onconnectionstatechange = () => {
+                const state = peerConnection.connectionState;
+                addLog(isBroadcaster ? broadcasterLog : viewerLog, `🔗 ${state}`);
+                
+                if (state === 'connected') {
+                    if (isBroadcaster) {
+                        broadcasterStatus.textContent = '🎥 Live - Streaming';
+                        
+                        // Enable chat for broadcaster
+                        broadcasterMessage.disabled = false;
+                        sendBroadcasterMessage.disabled = false;
+                        addChatMessage(broadcasterChat, 'You are now live! Chat enabled.', 'System', 'system');
+                    } else {
+                        viewerStatus.textContent = '✅ Connected to stream';
+                    }
+                    
+                    // Create data channel for chat
+                    if (isBroadcaster) {
+                        dataChannel = peerConnection.createDataChannel('chat');
+                        setupDataChannel(dataChannel);
+                    } else {
+                        peerConnection.ondatachannel = (event) => {
+                            dataChannel = event.channel;
+                            setupDataChannel(dataChannel);
+                        };
+                    }
+                }
+            };
+        }
+
+        // Setup data channel for chat
+        function setupDataChannel(channel) {
+            channel.onopen = () => {
+                addLog(isBroadcaster ? broadcasterLog : viewerLog, '💬 Chat channel opened');
+                addChatMessage(isBroadcaster ? broadcasterChat : viewerChat, 'Chat connected!', 'System', 'system');
+            };
+            
+            channel.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.type === 'chat') {
+                        const chatElement = isBroadcaster ? broadcasterChat : viewerChat;
+                        addChatMessage(chatElement, message.message, message.sender, 'received');
+                    }
+                } catch (error) {
+                    console.error('Error parsing chat message:', error);
+                }
+            };
+            
+            channel.onclose = () => {
+                addLog(isBroadcaster ? broadcasterLog : viewerLog, '💬 Chat channel closed');
+            };
+        }
+
+        // Create and send offer
+        async function createOffer() {
+            try {
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                signalingSocket.send(JSON.stringify({
+                    type: 'offer',
+                    offer: offer,
+                    room: streamId
+                }));
+                
+                addLog(broadcasterLog, '📤 Sent offer to viewer');
+            } catch (error) {
+                addLog(broadcasterLog, '❌ Error creating offer: ' + error.message);
+            }
+        }
+
+        // Handle offer
+        async function handleOffer(offer) {
+            try {
+                await peerConnection.setRemoteDescription(offer);
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                
+                signalingSocket.send(JSON.stringify({
+                    type: 'answer',
+                    answer: answer,
+                    room: streamId
+                }));
+                
+                addLog(viewerLog, '📤 Sent answer to broadcaster');
+            } catch (error) {
+                addLog(viewerLog, '❌ Error handling offer: ' + error.message);
+            }
+        }
+
+        // Handle answer
+        async function handleAnswer(answer) {
+            try {
+                await peerConnection.setRemoteDescription(answer);
+                addLog(broadcasterLog, '✅ Received answer from viewer');
+            } catch (error) {
+                addLog(broadcasterLog, '❌ Error handling answer: ' + error.message);
+            }
+        }
+
+        // Handle ICE candidate
+        async function handleIceCandidate(candidate) {
+            try {
+                await peerConnection.addIceCandidate(candidate);
+            } catch (error) {
+                console.error('Error adding ICE candidate:', error);
+            }
+        }
+
+        // Start streaming
+        async function startStreaming() {
+            try {
+                addLog(broadcasterLog, '🚀 Starting stream...');
+                
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 720 }, 
+                    audio: true 
+                });
+                
+                broadcasterVideo.srcObject = localStream;
+                broadcasterPlaceholder.classList.add('hidden');
+                
+                streamId = getOrCreateRoomId();
+                isBroadcaster = true;
+                
+                const currentUrl = window.location.origin + window.location.pathname + '?room=' + streamId;
+                streamLink.value = currentUrl;
+                streamLinkSection.classList.remove('hidden');
+                startStreamBtn.classList.add('hidden');
+                stopStreamBtn.classList.remove('hidden');
+                broadcasterStatus.textContent = '🔗 Connecting...';
+                broadcasterStatus.className = 'status connecting';
+                
+                await connectSignalingServer(streamId, true);
+                
+                addLog(broadcasterLog, '📹 Camera activated - Share the link with viewers');
+                
+            } catch (error) {
+                addLog(broadcasterLog, '❌ Error: ' + error.message);
+                alert('Error accessing camera/microphone. Please allow permissions.');
+            }
+        }
+
+        // Stop streaming
+        function stopStreaming() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (signalingSocket) {
+                signalingSocket.close();
+            }
+            if (dataChannel) {
+                dataChannel.close();
+            }
+            
+            broadcasterVideo.srcObject = null;
+            broadcasterPlaceholder.classList.remove('hidden');
+            streamLinkSection.classList.add('hidden');
+            startStreamBtn.classList.remove('hidden');
+            stopStreamBtn.classList.add('hidden');
+            broadcasterStatus.textContent = 'Offline';
+            broadcasterStatus.className = 'status offline';
+            
+            // Disable chat
+            broadcasterMessage.disabled = true;
+            sendBroadcasterMessage.disabled = true;
+            
+            addLog(broadcasterLog, '🛑 Streaming stopped');
+            addChatMessage(broadcasterChat, 'Stream ended. Chat disabled.', 'System', 'system');
+        }
+
+        // Watch stream
+        async function watchStream() {
+            const streamUrl = viewerLinkInput.value;
+            if (!streamUrl) {
+                alert('Please enter a stream link');
+                return;
+            }
+            
+            try {
+                addLog(viewerLog, '👀 Attempting to watch stream...');
+                
+                const url = new URL(streamUrl);
+                streamId = url.searchParams.get('room');
+                
+                if (!streamId) {
+                    alert('Invalid stream link');
+                    return;
+                }
+                
+                watchStreamBtn.disabled = true;
+                viewerStatus.textContent = '🔗 Connecting...';
+                viewerStatus.className = 'status connecting';
+                
+                await connectSignalingServer(streamId, false);
+                
+                watchStreamBtn.classList.add('hidden');
+                stopWatchingBtn.classList.remove('hidden');
+                
+                addLog(viewerLog, '✅ Connected to room - waiting for stream...');
+                
+            } catch (error) {
+                addLog(viewerLog, '❌ Error: ' + error.message);
+                watchStreamBtn.disabled = false;
+            }
+        }
+
+        // Stop watching
+        function stopWatching() {
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (signalingSocket) {
+                signalingSocket.close();
+            }
+            if (dataChannel) {
+                dataChannel.close();
+            }
+            
+            viewerVideo.srcObject = null;
+            viewerPlaceholder.classList.remove('hidden');
+            watchStreamBtn.classList.remove('hidden');
+            watchStreamBtn.disabled = false;
+            stopWatchingBtn.classList.add('hidden');
+            viewerStatus.textContent = 'Not connected';
+            viewerStatus.className = 'status offline';
+            
+            // Disable chat
+            viewerMessage.disabled = true;
+            sendViewerMessage.disabled = true;
+            
+            addLog(viewerLog, '🛑 Stopped watching');
+            addChatMessage(viewerChat, 'Disconnected from stream.', 'System', 'system');
+        }
+
+        // Chat message sending
+        function setupChat() {
+            // Broadcaster chat
+            sendBroadcasterMessage.addEventListener('click', () => {
+                const message = broadcasterMessage.value.trim();
+                if (message) {
+                    if (sendChatMessage(message)) {
+                        broadcasterMessage.value = '';
+                    }
+                }
+            });
+
+            broadcasterMessage.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendBroadcasterMessage.click();
+                }
+            });
+
+            // Viewer chat
+            sendViewerMessage.addEventListener('click', () => {
+                const message = viewerMessage.value.trim();
+                if (message) {
+                    if (sendChatMessage(message)) {
+                        viewerMessage.value = '';
+                    }
+                }
+            });
+
+            viewerMessage.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendViewerMessage.click();
+                }
+            });
+        }
+
+        // Copy link to clipboard
+        function copyToClipboard() {
+            streamLink.select();
+            document.execCommand('copy');
+            addLog(broadcasterLog, '📋 Link copied to clipboard');
+        }
+
+        // Auto-fill viewer link if room parameter exists
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('room');
+            
+            if (roomId) {
+                viewerLinkInput.value = window.location.href;
+                // Auto-switch to viewer tab
+                document.querySelector('.tab[data-tab="viewer"]').click();
+            }
+            
+            addLog(broadcasterLog, '🔧 System ready - Click "Start Streaming" to begin');
+            addLog(viewerLog, '🔧 System ready - Paste a stream link to watch');
+            
+            // Setup chat handlers
+            setupChat();
+        });
+
+        // Event listeners
+        startStreamBtn.addEventListener('click', startStreaming);
+        stopStreamBtn.addEventListener('click', stopStreaming);
+        watchStreamBtn.addEventListener('click', watchStream);
+        stopWatchingBtn.addEventListener('click', stopWatching);
+        copyLinkBtn.addEventListener('click', copyToClipboard);
+    </script>
+</body>
+</html>
